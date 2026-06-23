@@ -8,6 +8,8 @@ MCP server for Crave Bake Supply. It connects ChatGPT to Shopify product data so
 - `update_product_type`: changes a product type after owner confirmation.
 - `update_product_tags`: replaces product tags after owner confirmation.
 - `set_variant_taxable`: changes a variant taxable flag after owner confirmation.
+- `search_product_categories`: searches Shopify taxonomy categories by keyword and returns their IDs.
+- `update_product_category`: assigns a taxonomy category to a product after owner confirmation.
 
 ## Render Settings
 
