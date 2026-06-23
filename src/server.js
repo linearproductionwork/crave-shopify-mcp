@@ -286,6 +286,87 @@ server.tool(
   }
 );
 
+server.tool(
+  "update_product_category",
+  "Update a Shopify product taxonomy category. Use only after the store owner confirms the change.",
+  {
+    productId: z.string().describe("Shopify product GraphQL ID, e.g. gid://shopify/Product/123"),
+    categoryId: z.string().describe("Shopify taxonomy category ID, e.g. gid://shopify/TaxonomyCategory/fb-2-5-27-1")
+  },
+  async ({ productId, categoryId }) => {
+    const data = await shopifyGraphql(
+      `mutation UpdateProductCategory($product: ProductUpdateInput!) {
+        productUpdate(product: $product) {
+          product {
+            id
+            title
+            category {
+              id
+              name
+              fullName
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }`,
+      {
+        product: {
+          id: productId,
+          category: categoryId
+        }
+      }
+    );
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(data.productUpdate, null, 2)
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  "search_product_categories",
+  "Search Shopify product taxonomy categories by keyword. Returns category IDs and full names to use with update_product_category.",
+  {
+    query: z.string().min(1).describe("Search term, e.g. 'chocolate', 'pastry filling', 'baking ingredient'")
+  },
+  async ({ query }) => {
+    const data = await shopifyGraphql(
+      `query SearchCategories($query: String!) {
+        taxonomy {
+          categories(first: 20, query: $query) {
+            nodes {
+              id
+              name
+              fullName
+              isLeaf
+            }
+          }
+        }
+      }`,
+      { query }
+    );
+
+    const categories = data.taxonomy.categories.nodes;
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(categories, null, 2)
+        }
+      ]
+    };
+  }
+);
+
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 
